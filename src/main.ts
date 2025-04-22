@@ -1,5 +1,7 @@
 import Database from 'better-sqlite3';
 import { type GalleryRow, namespaces } from './types.ts';
+import * as fs from 'fs';
+import * as zlib from 'zlib';
 
 // 原数据库，仅以只读方式打开
 const ORIG_DB_PATH =
@@ -140,3 +142,13 @@ console.log('dumped 字段分布统计完成，新数据库的 dumped_distributi
 
 origDb.close();
 aggDb.close();
+
+const input = fs.createReadStream(AGG_DB_PATH);
+const output = fs.createWriteStream(`${AGG_DB_PATH}.gz`);
+const gzip = zlib.createGzip({ level: zlib.constants.Z_BEST_COMPRESSION });
+input
+    .pipe(gzip)
+    .pipe(output)
+    .on('finish', () => {
+        console.log(`数据库已压缩为 ${AGG_DB_PATH}.gz`);
+    });

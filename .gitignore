@@ -5,6 +5,7 @@
 /releases
 /key.pem
 *.sqlite
+*.sqlite.gz
 
 # dependencies
 /node_modules
