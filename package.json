@@ -1,0 +1,36 @@
+{
+    "name": "ehsyringe",
+    "displayName": "EhSyringe",
+    "version": "3.1.1",
+    "description": "E 站注射器，将中文翻译注入到 E 站体内。",
+    "author": "EhTagTranslation",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/EhTagTranslation/EhTagDb.git"
+    },
+    "engines": {
+        "node": "^22.14.0"
+    },
+    "packageManager": "pnpm@10.9.0",
+    "license": "GPL-3.0-only",
+    "bugs": "https://github.com/EhTagTranslation/EhTagDb/issues",
+    "homepage": "https://github.com/EhTagTranslation/EhTagDb",
+    "type": "module",
+    "main": "src/main.ts",
+    "scripts": {
+        "start": "node --experimental-transform-types .",
+        "lint": "eslint",
+        "format": "prettier --ignore-path .gitignore --write ."
+    },
+    "devDependencies": {
+        "@types/better-sqlite3": "^7.6.13",
+        "eslint": "^9.25.0",
+        "eslint-config-prettier": "^10.1.2",
+        "prettier": "^3.5.3",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.30.1"
+    },
+    "dependencies": {
+        "better-sqlite3": "^11.9.1"
+    }
+}

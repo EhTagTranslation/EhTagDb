@@ -1,0 +1,22 @@
+{
+    "include": ["src/**/*"],
+    "compilerOptions": {
+        "target": "ES2024",
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "baseUrl": "src",
+        "resolveJsonModule": true,
+        "noEmit": true,
+        "sourceMap": true,
+        "esModuleInterop": true,
+        "allowJs": true,
+        "strict": true,
+        "noImplicitReturns": true,
+        "noImplicitOverride": true,
+        "verbatimModuleSyntax": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "importHelpers": true,
+        "allowImportingTsExtensions": true
+    }
+}
