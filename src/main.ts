@@ -29,7 +29,7 @@ const tagAgg = new Map<
     string,
     {
         count: number;
-        candidates: Array<{ rating: number; gid: number; token: string; posted: number }>;
+        candidates: Array<{ gid: number; token: string; posted: number }>;
     }
 >();
 
@@ -74,9 +74,8 @@ for (const row of origDb.prepare<[], GalleryRow>('SELECT * FROM gallery WHERE cu
             // 有效判断条件：!expunged && !removed && (dumped ?? 0) > validDumpedThreshold
             const valid = row.expunged === 0 && row.removed === 0 && (row.dumped ?? 0) > validDumpedThreshold;
             if (valid) {
-                // 假设 row.rating 存在，记录该条记录的 rating、gid、token 和 posted
+                // 记录该条记录的 gid、token 和 posted
                 entry.candidates.push({
-                    rating: row.rating,
                     gid: row.gid,
                     token: row.token,
                     posted: row.posted ?? 0,
@@ -100,20 +99,13 @@ const insertStmt = aggDb.prepare(`
 `);
 const insertTxn = aggDb.transaction(
     (
-        entries: Array<
-            [
-                string,
-                { count: number; candidates: Array<{ rating: number; gid: number; token: string; posted: number }> },
-            ]
-        >,
+        entries: Array<[string, { count: number; candidates: Array<{ gid: number; token: string; posted: number }> }]>,
     ) => {
         for (const [key, { count, candidates }] of entries) {
             const [namespace, tag] = key.split('||');
-            // 按照 rating 降序排序，若 rating 相同则按 posted 降序排序
+            // 按 posted 降序排序
             // 取出前 5 个候选项，构造 galleries 字符串
-            const topCandidates = candidates
-                .sort((a, b) => (b.rating === a.rating ? b.posted - a.posted : b.rating - a.rating))
-                .slice(0, 5);
+            const topCandidates = candidates.sort((a, b) => b.posted - a.posted).slice(0, 5);
             const galleries = topCandidates.map((c) => `${c.gid}/${c.token}`).join('\n');
             insertStmt.run(namespace, tag, count, galleries);
         }
