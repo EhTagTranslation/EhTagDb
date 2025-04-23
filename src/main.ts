@@ -1,7 +1,7 @@
 import Database from 'better-sqlite3';
+import * as fs from 'node:fs';
+import * as zlib from 'node:zlib';
 import { type GalleryRow, namespaces } from './types.ts';
-import * as fs from 'fs';
-import * as zlib from 'zlib';
 
 // 原数据库，仅以只读方式打开
 const ORIG_DB_PATH =
@@ -10,6 +10,7 @@ const origDb = new Database(ORIG_DB_PATH, { readonly: true });
 
 // 新数据库路径（会自动创建）
 const AGG_DB_PATH = 'aggregated.sqlite';
+fs.rmSync(AGG_DB_PATH, { force: true });
 const aggDb = new Database(AGG_DB_PATH);
 
 // 修改创建 tag_aggregate 表，删除 gid 和 gtoken 列，新增 galleries 列
