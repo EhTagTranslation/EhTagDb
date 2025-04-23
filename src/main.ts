@@ -24,12 +24,12 @@ aggDb.exec(`
 `);
 
 // 聚合结果 Map，key = "${namespace}||${tag}"，value 保存 { count, candidates }
-// candidates 用于保存满足有效条件的记录，后续取 rating 最高的 5 条，构造 galleries 字符串
+// candidates 用于保存满足有效条件的记录，后续取 5 条，构造 galleries 字符串
 const tagAgg = new Map<
     string,
     {
         count: number;
-        candidates: Array<{ rating: number; gid: number; token: string }>;
+        candidates: Array<{ rating: number; gid: number; token: string; posted: number }>;
     }
 >();
 
@@ -38,7 +38,7 @@ const totalRows = origDb.prepare<[], { count: number }>('SELECT COUNT(*) as coun
 console.log(`总记录数: ${totalRows}`);
 
 let processed = 0;
-const progressInterval = Math.ceil(totalRows / 100); // 每处理约1%记录时打印一次
+const progressInterval = Math.ceil(totalRows / 100); // 每处理约 1% 记录时打印一次
 
 // 有效判断所用的 dumped 阈值（Unix timestamp 格式），Date.parse 返回毫秒需除以1000
 const validDumpedThreshold = Date.parse('2024/12/15') / 1000;
@@ -69,14 +69,15 @@ for (const row of origDb.prepare<[], GalleryRow>('SELECT * FROM gallery').iterat
             }
             // 累加出现次数，不论是否满足有效条件
             entry.count++;
-            // 新的有效判断条件：!expunged && !removed && (dumped ?? 0) > validDumpedThreshold
+            // 有效判断条件：!expunged && !removed && (dumped ?? 0) > validDumpedThreshold
             const valid = row.expunged === 0 && row.removed === 0 && (row.dumped ?? 0) > validDumpedThreshold;
             if (valid) {
-                // 假设 row.rating 存在，记录该条记录的 rating、gid 和 token
+                // 假设 row.rating 存在，记录该条记录的 rating、gid、token 和 posted
                 entry.candidates.push({
                     rating: row.rating,
                     gid: row.gid,
                     token: row.token,
+                    posted: row.posted ?? 0,
                 });
             }
         }
@@ -97,13 +98,20 @@ const insertStmt = aggDb.prepare(`
 `);
 const insertTxn = aggDb.transaction(
     (
-        entries: Array<[string, { count: number; candidates: Array<{ rating: number; gid: number; token: string }> }]>,
+        entries: Array<
+            [
+                string,
+                { count: number; candidates: Array<{ rating: number; gid: number; token: string; posted: number }> },
+            ]
+        >,
     ) => {
         for (const [key, { count, candidates }] of entries) {
             const [namespace, tag] = key.split('||');
-            // 按 rating 降序排序，取最高的 5 条记录
-            const topCandidates = candidates.sort((a, b) => b.rating - a.rating).slice(0, 5);
-            // 将每条记录的 gid 和 token 用 '/' 拼接，然后用换行符 '\n' 连接
+            // 按照 rating 降序排序，若 rating 相同则按 posted 降序排序
+            // 取出前 5 个候选项，构造 galleries 字符串
+            const topCandidates = candidates
+                .sort((a, b) => (b.rating === a.rating ? b.posted - a.posted : b.rating - a.rating))
+                .slice(0, 5);
             const galleries = topCandidates.map((c) => `${c.gid}/${c.token}`).join('\n');
             insertStmt.run(namespace, tag, count, galleries);
         }

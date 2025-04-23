@@ -23,6 +23,11 @@ export interface GalleryRow {
     rating: number;
     gid: number;
     token: string;
+    title: string | null;
+    title_jpn: string | null;
+    // posted 字段为 Unix 时间戳，可能为 null
+    posted: number | null;
+    uploader: string | null;
 
     // 附加其他字段，如有需要可以扩展
     [key: string]: unknown;
