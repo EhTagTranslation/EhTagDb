@@ -25,7 +25,7 @@ aggDb.exec(`
 `);
 
 // 聚合结果 Map，key = "${namespace}||${tag}"，value 保存 { count, candidates }
-// candidates 用于保存满足有效条件的记录，后续取 5 条，构造 galleries 字符串
+// candidates 用于保存满足有效条件的记录，构造 galleries 字符串
 const tagAgg = new Map<
     string,
     {
@@ -105,8 +105,8 @@ const insertTxn = aggDb.transaction(
         for (const [key, { count, candidates }] of entries) {
             const [namespace, tag] = key.split('||');
             // 按 posted 降序排序
-            // 取出前 5 个候选项，构造 galleries 字符串
-            const topCandidates = candidates.sort((a, b) => b.posted - a.posted).slice(0, 5);
+            // 取出前 25 个候选项，构造 galleries 字符串
+            const topCandidates = candidates.sort((a, b) => b.posted - a.posted).slice(0, 25);
             const galleries = topCandidates.map((c) => `${c.gid}/${c.token}`).join('\n');
             insertStmt.run(namespace, tag, count, galleries);
         }
