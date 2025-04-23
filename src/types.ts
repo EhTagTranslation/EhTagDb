@@ -29,6 +29,18 @@ export interface GalleryRow {
     posted: number | null;
     uploader: string | null;
 
+    // 父节点
+    parent_gid: number | null;
+    parent_key: string | null;
+
+    // 头节点
+    first_gid: number | null;
+    first_key: string | null;
+
+    // 尾节点
+    current_gid: number | null;
+    current_key: string | null;
+
     // 附加其他字段，如有需要可以扩展
     [key: string]: unknown;
 }

@@ -34,7 +34,9 @@ const tagAgg = new Map<
 >();
 
 // 获取 gallery 表总记录数，用于进度提示
-const totalRows = origDb.prepare<[], { count: number }>('SELECT COUNT(*) as count FROM gallery').get()!.count;
+const totalRows = origDb
+    .prepare<[], { count: number }>('SELECT COUNT(*) as count FROM gallery WHERE current_gid is NULL')
+    .get()!.count;
 console.log(`总记录数: ${totalRows}`);
 
 let processed = 0;
@@ -43,7 +45,7 @@ const progressInterval = Math.ceil(totalRows / 100); // 每处理约 1% 记录�
 // 有效判断所用的 dumped 阈值（Unix timestamp 格式），Date.parse 返回毫秒需除以1000
 const validDumpedThreshold = Date.parse('2024/12/15') / 1000;
 
-for (const row of origDb.prepare<[], GalleryRow>('SELECT * FROM gallery').iterate()) {
+for (const row of origDb.prepare<[], GalleryRow>('SELECT * FROM gallery WHERE current_gid is NULL').iterate()) {
     for (const ns of namespaces) {
         const field = row[ns];
         if (!field) continue;
